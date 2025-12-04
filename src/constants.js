@@ -1,0 +1,1 @@
+export const DB_NAME = "backend_final_project_db";
