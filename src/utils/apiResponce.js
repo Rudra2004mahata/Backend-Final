@@ -7,3 +7,4 @@ class apiResponce {
         this.errors = [];
     }
 }
+export { apiResponce };
