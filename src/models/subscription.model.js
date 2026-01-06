@@ -1,20 +1,31 @@
+import mongoose from "mongoose";
 
-import mongoose,{schema} from "mongoose";
-
-const subscriptionSchema = new mongoose.Schema({
+const subscriptionSchema = new mongoose.Schema(
+  {
     subscriber: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
+
     channel: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    }
-},{
-    timestamps:true,
-});
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Subscription = mongoose.model("Subscription",subscriptionSchema);
+/* 🔒 Prevent duplicate subscriptions */
+subscriptionSchema.index(
+  { subscriber: 1, channel: 1 },
+  { unique: true }
+);
 
-export {Subscription};
+export const Subscription = mongoose.model(
+  "Subscription",
+  subscriptionSchema
+);

@@ -1,42 +1,58 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
-    deleteVideo,
-    getAllVideos,
-    getVideoById,
-    publishAVideo,
-    togglePublishStatus,
-    updateVideo,
-} from "../controllers/video.controller.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
-import {upload} from "../middlewares/multer.middleware.js"
+  deleteVideo,
+  getAllVideos,
+  getVideoById,
+  publishAVideo,
+  togglePublishStatus,
+  updateVideo,
+} from "../controllers/video.controller.js";
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router
-    .route("/")
-    .get(getAllVideos)
-    .post(
-        upload.fields([
-            {
-                name: "videoFile",
-                maxCount: 1,
-            },
-            {
-                name: "thumbnail",
-                maxCount: 1,
-            },
-            
-        ]),
-        publishAVideo
-    );
+/* ================= PUBLIC ROUTES ================= */
+// 🔥 Home feed (all videos)
+router.get("/", getAllVideos);
 
-router
-    .route("/:videoId")
-    .get(getVideoById)
-    .delete(deleteVideo)
-    .patch(upload.single("thumbnail"), updateVideo);
+// 🔥 Channel videos
+router.get("/channel/:channelId", (req, res, next) => {
+  req.query.userId = req.params.channelId;
+  next();
+}, getAllVideos);
 
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+// 🔥 Watch single video
+router.get("/:videoId", getVideoById);
 
-export default router
+/* ================= PROTECTED ROUTES ================= */
+
+// 🔥 Publish video - verifyJWT MUST come BEFORE upload middleware
+router.post(
+  "/",
+  verifyJWT,  // ✅ Auth check FIRST
+  upload.fields([
+    { name: "videoFile", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  publishAVideo
+);
+
+// 🔥 Update video
+router.patch(
+  "/:videoId",
+  verifyJWT,  // ✅ Auth check FIRST
+  upload.fields([
+    { name: "videoFile", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  updateVideo
+);
+
+// 🔥 Delete video
+router.delete("/:videoId", verifyJWT, deleteVideo);
+
+// 🔥 Toggle publish status
+router.patch("/toggle/publish/:videoId", verifyJWT, togglePublishStatus);
+
+export default router;

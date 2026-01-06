@@ -1,19 +1,40 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
-    getSubscribedChannels,
-    getUserChannelSubscribers,
-    toggleSubscription,
-} from "../controllers/subscription.controller.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
+  toggleSubscription,
+  checkSubscription,
+  getUserChannelSubscribers,
+  getSubscribedChannels,
+  getChannelSubscriptionStats
+} from "../controllers/subscription.controller.js";
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
 const router = Router();
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router
-    .route("/c/:channelId")
-    .get(getSubscribedChannels)
-    .post(toggleSubscription);
+/* ============================
+ * PUBLIC ROUTES
+ * ============================
+ */
+// Channel subscriber count (PUBLIC)
+router.get(
+  "/stats/:channelId",
+  getChannelSubscriptionStats
+);
 
-router.route("/u/:subscriberId").get(getUserChannelSubscribers);
+// Get subscribers of a channel
+router.get("/channel/:channelId", getUserChannelSubscribers);
 
-export default router
+// Get channels a user has subscribed to
+router.get("/user/:subscriberId", getSubscribedChannels);
+
+/* ============================
+ * PROTECTED ROUTES
+ * ============================
+ */
+
+// Check subscription status (for Subscribe button state)
+router.get("/check/:channelId", verifyJWT, checkSubscription);
+
+// Subscribe / Unsubscribe
+router.patch("/toggle/:channelId", verifyJWT, toggleSubscription);
+
+export default router;
