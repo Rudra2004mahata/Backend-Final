@@ -162,21 +162,22 @@ const publishAVideo = asyncHandler(async (req, res) => {
   }
 
   const videoUpload = await uploadOnCloudinary(videoFile.path);
-  const thumbnailUpload = await uploadOnCloudinary(thumbnailFile.path);
+const thumbnailUpload = await uploadOnCloudinary(thumbnailFile.path);
 
-  if (!videoUpload?.url || !thumbnailUpload?.url) {
-    throw new apiError("Media upload failed", 500);
-  }
+/* 🔥 ONLY CHANGE: use secure_url */
+if (!videoUpload?.secure_url || !thumbnailUpload?.secure_url) {
+  throw new apiError("Media upload failed", 500);
+}
 
-  const video = await Video.create({
-    title,
-    description,
-    videoFile: videoUpload.url,
-    thumbnail: thumbnailUpload.url,
-    duration: videoUpload.duration || 0,
-    uploadedBy: req.user._id,
-    isPublished: true,
-  });
+const video = await Video.create({
+  title,
+  description,
+  videoFile: videoUpload.secure_url,     // ✅ HTTPS
+  thumbnail: thumbnailUpload.secure_url, // ✅ HTTPS
+  duration: videoUpload.duration || 0,
+  uploadedBy: req.user._id,
+  isPublished: true,
+});
 
   return res
     .status(201)
